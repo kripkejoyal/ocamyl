@@ -4,7 +4,6 @@
 open Support.Error
 open Support.Pervasive
 open Syntax
-open Core 
 open Format
 open Type
 open Eval

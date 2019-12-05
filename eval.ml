@@ -1,5 +1,4 @@
 open Format
-open Core
 open Support.Pervasive
 open Support.Error
 open Syntax
