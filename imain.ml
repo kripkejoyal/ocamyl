@@ -23,18 +23,14 @@ let parse' machine in_channel =   (* machine -> in_channel -> command list *)
  * ##################### *)
 
 let process' ctx ()         = 
-    let cmds                = parse' interpreter stdin in 
-    List.iter (print_eval ctx) cmds
+    let cmds                = parse' interpreter stdin in ()
 
 (* interpreter *) 
 let rec parse_error s = print_endline s; flush stdout ;; 
 let main' () =
-    while true do 
-        try process' emptycontext (); print_endline "debug loop"
-        with    End_of_file -> print_endline "end_of_file"
-            |   e           -> raise e
-    done
+    try process' emptycontext (); 0 
+    with Exit x -> x  
 
-let _ = Printexc.catch (fun () -> try main' (); 0 with Exit x -> x) () 
+let _ = Printexc.catch main' () 
 
 

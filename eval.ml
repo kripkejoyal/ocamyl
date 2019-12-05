@@ -45,18 +45,22 @@ let rec eval ctx t =
 
 
 
-let rec process_command ctx = function 
-    | Eval(fi,t)                ->  
+let rec process_command ctx     = function 
+    | Eval(fi,t)                    ->  
             let tyT = typeof ctx t in 
             printtm_ATerm true ctx (eval ctx t); 
             print_break 1 2; pr ": "; printty tyT; force_newline(); ctx
-    | Bind(fi,x,bind)           ->  pr ("Now, "^x^ " is a variable: "); prbindingty ctx bind; force_newline(); addbinding ctx x bind 
+    | Bind(fi,x,bind)               ->  pr ("Now, "^x^ " is a variable: "); 
+                                        prbindingty ctx bind; force_newline(); 
+                                        addbinding ctx x bind 
 
+let rec process_commands ctx    = function 
+    | []                            ->  ctx 
+    | cmd::cmds                     ->  open_hvbox 0; 
+                                        let ctx' = process_command ctx cmd in 
+                                        print_flush ();
+                                        process_commands ctx' cmds
 
-let print_eval ctx cmd      = 
-    open_hvbox 0; 
-    process_command ctx cmd; 
-    print_flush ()
 
 
 

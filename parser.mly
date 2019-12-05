@@ -88,39 +88,29 @@ let pe = print_endline
 %type <Syntax.context -> (Syntax.command list * Syntax.context)> toplevel
 
 %%
-/* Begin Interpreter */ 
-input : /* Left Recursion */
-    |                               { fun ctx   -> [],ctx  }
-    | input block                   { fun ctx   -> 
-                                        let blks,ctx = $1 ctx in 
-                                        let blk,ctx = $2 ctx in 
-                                        (List.append blks blk, ctx) } 
-block :     /* Left Recursion */                    
-    | Command                       { fun ctx   -> let cmd,ctx = $1 ctx in [cmd],ctx }             
-    | block SEMI Command            { fun ctx   -> 
-                                        let cmd,ctx = $3 ctx in 
-                                        let cmds,ctx  = $1 ctx in 
-                                        List.append cmds [cmd], ctx }  
-    | block HOGE                    { let cmds,ctx = $1 emptycontext in let _ = List.iter (print_eval ctx) cmds in 
-                                      fun ctx   -> let blk,ctx = $1 ctx in blk,ctx }  
-    | block EOF                     { fun ctx   -> let blk,ctx = $1 ctx in blk,ctx } 
-/* End Interpreter */
-
-/* Begin Compiler */
-toplevel :  /* Right Recursion */                
-    | EOF                           { fun ctx   -> [],ctx } 
-    | Command SEMI toplevel         { fun ctx   -> 
-          let cmd,ctx   = $1 ctx in 
-          let cmds,ctx  = $3 ctx in 
-          cmd::cmds,ctx } 
-/* End Compliler */ 
-
-/* Modules both for Interpreter and for Compiler */ 
+/************   REPL   ***************************************************************************/
+input :   /* Left Recursion */
+    |                                   { fun _     ->  [],[]                                   }
+    | input DOUBLESEMI                  { fun ctx   ->  [],ctx                                  } 
+    | input oneREPL                     { let _,ev_ctx  = $1 [] in  
+                                          let cmds,_    = $2 ev_ctx in 
+                                          let ev_ctx'   = process_commands ev_ctx cmds in 
+                                          fun _     ->  [],ev_ctx'                              } 
+oneREPL : 
+    | Command DOUBLESEMI                { fun ctx   ->  let cmd,ctx'   = $1 ctx in [cmd],ctx'   } 
+    | Command SEMI oneREPL              { fun ctx   ->  let cmd,ctx'   = $1 ctx in 
+                                                        let cmds,ctx'' = $3 ctx' in cmd::cmds,ctx''  }
+/************  COMPILER  *************************************************************************/
+toplevel : /* Right Recursion */                
+    | EOF                               { fun ctx   ->  [],ctx                                  } 
+    | Command SEMI toplevel             { fun ctx   ->  let cmd,ctx  = $1 ctx in 
+                                                        let cmds,ctx = $3 ctx in cmd::cmds,ctx  } 
+/************   COMMAND  *************************************************************************/
 Command     :       /* A top-level command */ 
-    | Term                          { fun ctx   -> let t = $1 ctx in Eval(tmInfo t,t),ctx }
+    | Term                          { fun ctx   -> let t = $1 ctx in Eval(tmInfo t,t),ctx       }
     | LCID Binder                   { fun ctx   -> ((Bind($1.i,$1.v,$2 ctx)), addname ctx $1.v) } 
 Binder      : 
-    | COLON Type                    { fun ctx   -> VarBind($2 ctx) } 
+    | COLON Type                    { fun ctx   -> VarBind($2 ctx)  } 
 
 Type        : 
     | ArrowType                     { $1 } 

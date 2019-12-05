@@ -46,7 +46,7 @@ let parseFile f         =  (* string -> command list *)
 
 let process_file str ctx    =  (* string -> unit *)  (* print the evals of the list of commands *)  
     let cmds                =   parseFile str in
-    List.iter (print_eval ctx) cmds
+    let _ = process_commands ctx cmds in ()
 
 
 let main ()         =   parseArgs (); 

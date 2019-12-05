@@ -5,6 +5,6 @@ open Support.Error
 open Syntax
 open Arg 
 
-val eval            : (string*binding) list -> term -> term 
-val process_command : (string*binding) list -> command -> context 
-val print_eval      : (string*binding) list -> command -> unit
+val eval                : context -> term -> term 
+val process_command     : context -> command -> context 
+val process_commands    : context -> command list -> context 
